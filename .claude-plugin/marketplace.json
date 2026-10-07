@@ -1,0 +1,24 @@
+{
+  "name": "atat",
+  "description": "AtAt tools for Claude Code: the screen, the clipboard and the Finder, demo filming, and AtAt's own agent.",
+  "owner": {
+    "name": "xinyao27",
+    "email": "hi@atatapp.com",
+    "url": "https://github.com/xinyao27"
+  },
+  "plugins": [
+    {
+      "name": "atat",
+      "source": "./",
+      "description": "AtAt on this Mac: screenshot a screen, window, area or scrolling page, read clipboard history and the Finder selection, film a demo of an app, and ask AtAt's own agent.",
+      "category": "productivity",
+      "tags": [
+        "macos",
+        "screenshot",
+        "clipboard",
+        "screen-recording",
+        "demo"
+      ]
+    }
+  ]
+}

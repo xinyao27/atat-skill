@@ -1,0 +1,14 @@
+[
+  "skills/atat/SKILL.md",
+  "skills/atat-memory/SKILL.md",
+  "skills/atat-extension/SKILL.md",
+  ".claude-plugin/plugin.json",
+  ".claude-plugin/marketplace.json",
+  "LICENSE",
+  "README.md",
+  "README.zh-Hans.md",
+  "HANDOFF.md",
+  "atat-plugin.zip",
+  ".generated-by-export-public-skill",
+  ".generated-files.json"
+]

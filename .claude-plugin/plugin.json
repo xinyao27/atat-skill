@@ -1,8 +1,8 @@
 {
   "name": "atat",
   "displayName": "AtAt",
-  "version": "1.2.0",
-  "description": "AtAt on this Mac: screenshot a screen, window, area or scrolling page, read clipboard history and the Finder selection, film a demo of an app, and ask AtAt's own agent.",
+  "version": "2.0.0",
+  "description": "AtAt skills for using the local macOS app, its Memory Repo, and developing AtAt extensions.",
   "author": {
     "name": "xinyao27",
     "email": "hi@atatapp.com",
@@ -13,10 +13,10 @@
   "license": "MIT",
   "keywords": [
     "macos",
+    "skills",
     "screenshot",
-    "screen-capture",
     "clipboard",
-    "screen-recording",
-    "demo-video"
+    "memory",
+    "extensions"
   ]
 }

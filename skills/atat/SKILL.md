@@ -1,16 +1,16 @@
 ---
 name: atat
-description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; film a demo video of an app or website by writing a beat plan; or hand a task to AtAt's built-in terminal agent. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "film a 20-second demo of this feature".
+description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; film a demo video of an app or website by writing a beat plan, or record a launch-ready video of a feature while you operate the app yourself with computer use. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "film a 20-second demo of this feature".
 ---
 
 # AtAt (`atat`)
 
 `atat` is the command line of the AtAt app on this Mac.
 
-- `status`, `capture`, `context` and `record` are performed by the running AtAt over a local
+- `status`, `capture`, `context`, `record` and `dictation` are performed by the running AtAt over a local
   socket, with the user's own permissions, save location, Quick Access shelf and paid-feature
   gates. AtAt is started in the background when it is not running.
-- `ask`, `chat`, `feedback` and `icloud` run inside this process and need no running app.
+- `feedback` and `icloud` run inside this process and need no running app.
 
 `atat help` lists commands; `atat <command> --help` prints that command's options. Prefer the
 built-in help over guessing a flag.
@@ -30,6 +30,7 @@ Do not repeat installation when the app is already present. Do not access or cla
 | The user wants… | Run |
 | --- | --- |
 | to know whether AtAt is ready | `atat status` |
+| why dictation isn't working, or how many free words are left this week | `atat dictation status` |
 | you to look at an app, a page or an error | `atat capture window --app <App>` |
 | the whole screen, or one region of it | `atat capture screen` · `atat capture area --rect x,y,w,h` |
 | a long page or chat as one image | `atat capture scroll --app <App>` |
@@ -37,8 +38,8 @@ Do not repeat installation when the app is already present. Do not access or cla
 | you to use something they saved in Favorites | `atat context favorites --search "<words>"`, then `--id <id>` |
 | you to work on files they selected in Finder | `atat context finder` |
 | a single-window demo video of an app or website | `atat record prepare` → write a plan → `atat record compose plan.json` |
-| AtAt's own agent to answer or do a task | `atat ask "…"` |
-| to talk to AtAt's agent themselves | `atat` or `atat chat` (needs a real terminal) |
+| a video of a feature while you operate the app yourself (computer use) | `atat record start --app <App>` → operate → `atat record stop --id <id> --polish` — see "Film a feature you drive" |
+| a polished screenshot of a feature, AtAt panels included | `atat capture window --app <App> --include-atat` |
 | to read or update AtAt Memory | `atat memory …` — see the `atat-memory` skill |
 | their clipboard on their other Macs now, or to know where Clipboard sync stands | `atat icloud sync` · `atat icloud status` |
 | to send feedback or a bug report to the AtAt team | `atat feedback send --message "…"` |
@@ -48,13 +49,12 @@ What each command needs, so you can check only what your task needs:
 
 | Task | Requires |
 | --- | --- |
-| `capture`, `context`, `record` | `enabled` and `setupComplete` true |
+| `capture`, `context`, `record`, `dictation` | `enabled` and `setupComplete` true |
 | `capture screen` / `window` / `area` | Screen Recording |
-| `capture scroll`, `record prepare`, `record compose` | Screen Recording + Accessibility |
+| `capture scroll`, `record prepare`, `record compose`, `record start --app` | Screen Recording + Accessibility |
 | `context clipboard` | Clipboard History turned on in AtAt |
 | `context favorites` | "Let @@ search your Favorites" turned on in AtAt Settings → Clipboard (on by default) |
 | `context finder` | AtAt's Automation permission for Finder |
-| `ask`, `chat` | a plan once the 7-day Pro preview has ended; they never touch the app |
 | `icloud sync` | **Sync with iCloud** turned on in AtAt Settings → General; it never touches the app |
 | `icloud status` | nothing — it reads this Mac only |
 | `feedback`, `help`, `version` | nothing — they never touch the app |
@@ -84,7 +84,7 @@ formality before every command.
 7. **Do not touch a real mouse or keyboard while a take that needs real input is running.**
    It starts without asking; while it runs, nothing else on the Mac should move the pointer.
 8. **Editing and exporting are free.** On `record compose`, `--export` always delivers the
-   file. Without a paid Pro plan it carries a small AtAt logo mark in the
+   file. Without AtAt One it carries a small AtAt logo mark in the
    corner; mention that when you hand it over, and never promise a clean file.
 9. **Report failures with their `message`.** Do not retry blindly, and do not invent a
    fallback. The recovery steps are in "Errors".
@@ -93,7 +93,7 @@ Do not use AtAt's hidden diagnostic commands; this skill covers only the public 
 
 ## Reading output
 
-`status`, `capture`, `context` and `record` print one JSON object on stdout and exit 0. On
+`status`, `capture`, `context`, `record` and `dictation` print one JSON object on stdout and exit 0. On
 failure they print `{"error":{"code","message","detail"?}}` on stderr and exit nonzero:
 
 | Exit | Codes | Meaning |
@@ -109,8 +109,7 @@ failure they print `{"error":{"code","message","detail"?}}` on stderr and exit n
 a failed export includes the available `project`/`video` paths and `"exportFailed": true`.
 Never assume a partial take has a project or screenshot: check for each key.
 
-`ask`, `chat`, `help` and `version` print plain text; `atat ask` errors go to stderr
-as `atat: <message>` and exit 1. `feedback` prints JSON like the app commands, with its own
+`help` and `version` print plain text. `feedback` prints JSON like the app commands, with its own
 error codes (see its section).
 
 **Coordinates are screen points with the origin at the top left of the main display.** The
@@ -129,6 +128,25 @@ display they will be twice as large. Convert before comparing an image size with
 either is false, ask the user what to turn on before trying `capture`, `context` or `record`.
 `inputMonitoring` is not needed by any `atat` command.
 
+## `atat dictation status`
+
+```json
+{"key": "fn", "shortcut": null, "fnAlsoUsedByMacOS": false, "askShortcut": null,
+ "microphone": {"permission": "granted", "device": "system-default"},
+ "signedIn": true, "dictating": false,
+ "allowance": {"tier": "free", "wordsUsed": 760, "weeklyLimit": 2000, "remainingWords": 1240,
+               "resetsAt": "2026-10-19T00:00:00Z"}}
+```
+
+`key` is `fn` (hold Fn to talk, tap it to go hands-free) or `custom`, with the recorded
+combination in `shortcut`. `fnAlsoUsedByMacOS` means macOS also switches the input source or
+shows emoji on Fn; the user fixes that in System Settings → Keyboard. `askShortcut` is the Ask
+AtAt by Voice key, null when none is set: what the user says with it goes to AtAt as a request and
+the answer opens in a card, while the dictation key types it at the cursor. `permission` is
+`granted`, `denied` or `notAsked`. Signed out, `allowance` is null and dictation asks the
+user to sign in; a paid plan has `"tier": "paid"` with no limit. Dictation itself is the
+user's: there is no command to start it.
+
 ## `atat capture`
 
 ```sh
@@ -136,7 +154,13 @@ atat capture screen                          # the display under the pointer
 atat capture window --app "Safari"           # front window of that app, name or bundle id
 atat capture area --rect 0,0,1280,800        # x,y,width,height in points
 atat capture scroll --app "Safari"                 # --max-seconds 60 by default (5–600)
+atat capture window --app "Notes" --include-atat   # window + 48 pt of desktop + AtAt's panels; --margin <points>
 ```
+
+`--include-atat` captures the window and a margin around it as an area, together with the
+AtAt panels floating over it (the Orb, the Composer, an answer card, the selection bar), whatever
+the user's "Include @@ windows" setting says. The JSON adds `area`, the captured rectangle. Use it
+for marketing stills of an AtAt feature: get the app into the state you want first, then capture once.
 
 Window capture (the `window` frame is in points):
 
@@ -243,7 +267,69 @@ atat record resume --id <session-id>
 atat record stop --id <session-id>
 ```
 
-`start` also accepts `--rect x,y,width,height` in top-left screen points instead of `--display main`. `--include-atat` admits AtAt's product windows into the frame — the Orb with its Composer, Preview card and follow-up chat, the `/` skill picker, the Selection bar, the clipboard shelf and the TabTab correction pill — while toasts, the recording toolbar, capture chrome and every other AtAt window stay out. The app owns the take independently of the CLI connection: `atat record cancel` stops the in-progress take, the session ID remains queryable after completion within the running app, and repeating `stop` for that ID returns its recorded file list. This slice does not create a project file or rendered export.
+`start` also accepts `--rect x,y,width,height` in top-left screen points instead of `--display main`. `--include-atat` admits AtAt's product windows into the frame — the Orb with its Composer, Preview card and follow-up chat, the `/` skill picker, the Selection bar, the dictation bar, the clipboard shelf, the TabTab correction pill, Quick Access and the Image and Video Editors — while toasts, the recording toolbar, capture chrome and every other AtAt window stay out. The app owns the take independently of the CLI connection: `atat record cancel` stops the in-progress take, the session ID remains queryable after completion within the running app, and repeating `stop` for that ID returns its recorded file list. This slice does not create a project file or rendered export.
+
+### Film a feature you drive
+
+When you operate the app yourself — with computer use or any other way of clicking and
+typing — AtAt only stages and records; it never acts for you. The result is meant to drop
+straight into a launch video.
+
+```sh
+atat record start --app "Notes" --size 1600x1000 [--margin 48] [--include-atat]
+# … operate the app …
+atat record stop --id <id> --polish --export video [--max-idle 0.4] [--no-ui]
+```
+
+`start --app` opens or activates the app, resizes its front window to `--size` (default: its
+current size, fitted to the screen), centres it on the main display, and records the window
+plus `--margin` points of desktop at 60 fps with no baked-in cursor. It answers
+`{"id", "state", "app", "window", "stage"}`: `stage` is the recorded rectangle in screen points.
+Anything you do outside `stage` is not filmed. The window goes back where it was when the
+take ends — through `stop`, `cancel`, the user's Stop button, or the system.
+
+`stop --polish` keeps the unedited recording and adds a polished cut:
+
+- Stretches where nothing happened — no click, scroll or key, and nothing changing on screen —
+  are cut down to `--max-idle` seconds (default 0.4). Your screenshots and thinking between
+  actions disappear; an answer streaming in, a page loading, an animation playing are kept.
+- Your pointer is redrawn as smooth glides between the places you clicked, scrolled or
+  stopped on purpose, so a computer-use pointer that jumps reads as a hand on a mouse.
+  The editor adds click zooms.
+- AtAt builds a Video Editor project and opens it unless `--no-ui`; `--export video` also
+  writes the edited cut (drawn pointer and zooms; Free plan exports carry a small AtAt mark —
+  `watermarked` says which you got).
+
+```json
+{"id": "…", "state": "…", "files": ["/…/Recording.mp4"], "video": "/…/Recording.mp4",
+ "polished": "/…/Recording-polished.mp4", "duration": 94.3, "polishedDuration": 21.8, "cuts": 17,
+ "project": "/…/Recording-polished.atatproject", "export": "/…/Recording-polished-edited.mp4",
+ "watermarked": false, "warnings": []}
+```
+
+`--polish` only works on a take started with `--app`; on any other take it is
+`invalid_arguments` and the take keeps recording.
+
+How to make the footage good:
+
+1. **Understand the feature before you film.** Read how it works (for AtAt's own features, the
+   homepage at atatapp.com), write the steps a viewer should see, and do a dry run without
+   recording. Filming is for the run you already know works.
+2. **Set the stage, then start.** Close what should not be seen, open the document or page the
+   demo starts from, and dismiss popups. For an AtAt feature (typing `@@`, the Composer, an
+   answer, the selection bar) add `--include-atat` or its panels will be missing.
+3. **Type in plain letters.** Before typing with simulated keys, switch the keyboard to an
+   ASCII input source such as ABC: an input method like Pinyin turns your keystrokes into
+   candidate words, in the app and in AtAt's Composer alike. Switch it back afterwards.
+4. **Act like a person.** Move the pointer onto a control before clicking it, type at a normal
+   pace, and leave a second after each visible result before the next action. Take as long as
+   you need between actions: that time is cut.
+5. **One task per take**, short enough to follow. Stay inside `stage`; never move the window.
+6. **Check before you hand it over.** Look at a few frames of `export` (or `polished`) — the
+   start, each result, the end — for a wrong screen, an error dialog, or private information.
+   Re-film rather than ship a take with a mistake in it.
+7. **Ask the user to keep their hands off** the mouse and keyboard while you film: their input
+   is recorded and counts as action, and they may be using the same Mac.
 
 ### 1. `atat record prepare`
 
@@ -320,7 +406,7 @@ not in the unedited `video` file.
   animated GIF (15 fps, up to 960 px wide, loops) with neither. `warnings` says that when it
   applies. The separate `video` field is always the unedited MP4.
 - `--export` works on every plan. On the Free plan the exported video or GIF carries a small
-  AtAt logo mark in the corner; Pro (a plan or the Pro preview) exports clean.
+  AtAt logo mark in the corner; AtAt One (a plan or the preview) exports clean.
   `watermarked` (present with `export`) says which one you got — trust it over the plan. If the export itself
   fails, the available project/video paths are returned in `detail` with
   `exportFailed: true`.
@@ -395,7 +481,9 @@ longer want, or throws away a `record start` recording without saving it (its st
 interrupting the `compose` command itself — halts the step in progress immediately (typing
 stops mid-word, a pending click never lands) and the take ends as `take_failed`.
 
-One `prepare` or `compose` runs at a time; a second one meanwhile is `busy`. A `compose` that
+One `prepare` or `compose` runs at a time; a second one meanwhile is `busy`. A demo films with its own recorder, so it works while `atat record start` or
+the user's own recording is running (that take can film you making the demo); with both
+running, `atat record cancel` stops the demo first and `record stop --id` ends the take. A `compose` that
 is refused before filming (`needs_approval`, a stale or invalid plan) keeps the stage, so you
 can fix the plan and compose again; once filming starts, the stage is used up.
 
@@ -410,40 +498,6 @@ take was already running; it does not include a take to inspect.
 Then: look at `detail.screenshot`, fix that beat (usually a wrong ref, a control that moved, or
 a step that needed a `find`), **run `atat record prepare` again** — the old refs and
 `snapshotId` are dead — and ask the user before refilming. Say what you changed.
-
-## `atat ask` and `atat chat` — AtAt's own agent
-
-```sh
-atat ask "Summarize the README in this folder"          # one task, prints the answer
-cat notes.txt | atat ask --stdin "Turn these into a changelog"   # prompt + piped text
-atat ask --json "…"          # {"output", "final_output", "error"?, "usage"?}
-atat chat status             # the provider, model and reasoning a run would use
-atat                         # interactive conversation, for a person at a terminal
-```
-
-Options: `--provider <agent>`, `--model <id>`,
-`--reasoning <level>`, `--cwd <path>`, `--json` (ask only), `--no-tools`, `--allow-tools`,
-`--max-steps <n>` (default 16), `--timeout <seconds>` (default 120), and `--stdin` (ask only)
-to append piped text after a prompt. Without `--stdin`, positional prompt text wins and
-piped text is ignored. With no prompt words, `atat ask` reads the whole prompt from piped
-stdin. Put `--` before prompt text that starts with `-`.
-
-It uses the agent chosen in AtAt Settings → Agent: hosted APIs, Ollama, CLI agents, Custom
-commands or Siri AI when available. Provider names are `openrouter`, `openai`, `anthropic`,
-`deepseek`, `ollama`, `claude`, `codex`, `grok`, `cursor`, `pi`, `hermes`, `opencode`,
-`antigravity`, `siri` (`appleintelligence` is an alias), and `custom`. Host tools are rooted in
-`--cwd`; `--no-tools` removes them, while restrictions on an external agent's own tools follow
-that provider's background policy. Reading, Memory and file changes inside `--cwd` run
-without asking; any other tool call asks `y/N` in the terminal (`a` saves an always-allow rule,
-the same rules AtAt's Chat uses). With no terminal to ask in — when you run `atat ask` — those
-calls are skipped unless you pass `--allow-tools`; pass it only when the user wants AtAt's agent
-to act without being asked. Every run starts with the user's AtAt Memory (`MEMORY.md` and the
-topics it links), even with `--no-tools`. After the 7-day Pro preview, `ask` and `chat` need a
-plan: without one they print `atat: <message>` naming AtAt Settings → Account and exit 1; tell
-the user, do not retry. External agents use their own sign-in; Siri AI needs an
-available system model on macOS 26 or later. You are usually an agent already: use this only when the user asks for *AtAt's* agent
-or wants it to run with their AtAt setup. Interactive `atat` needs a real terminal; from a
-script or a pipe, always use `ask`.
 
 ## `atat icloud` — Clipboard sync with iCloud
 
@@ -478,7 +532,7 @@ A failure prints `{"version", "error": {"code", "message", "detail"?}}` on stder
 iCloud account), `quotaExceeded` and `pausedByUserDeletion` (the user chooses **Resync** in
 AtAt Settings → General) need the user: report the `message`, do not retry. `busy`: AtAt is
 syncing right now, which covers this round. `unavailable`: iCloud can't be reached for now;
-try once more later. `cancelled`: Sync with iCloud was turned off while it ran. `failed`:
+try once more later. `retrying`: a passing problem stopped the round; try once more later. `paused`: the round stopped on something that waits for the user or the account — report the `message`. `cancelled`: Sync with iCloud was turned off while it ran. `failed`:
 report the `message`. A successful round whose `clipboard.issue` is `needsUpdate` synced
 everything except items another Mac saved with a newer AtAt: tell the user to update AtAt.
 Never use `--resync` unless the user asks to upload this Mac's clipboard again after deleting
@@ -488,15 +542,15 @@ AtAt's data from iCloud.
 
 ```sh
 atat feedback send --message "The capture button does nothing in Safari" --dry-run
-atat feedback send --message - < report.txt [--email <address>] [--app atat|cuecue|metmet|umum] [--no-diagnostics]
+atat feedback send --message - < report.txt [--email <address>] [--app atat|cuecue|metmet|hidehide] [--no-diagnostics]
 ```
 
 Sends feedback, a bug report or a question to the AtAt team, only when the user asks you to.
 Show the user what you will send first (`--dry-run` prints the request and its `requestId`).
 It is anonymous unless `--email` gives a reply address; diagnostics (app and macOS version,
 chip, AtAt's agent settings) are included unless `--no-diagnostics`. Success prints `{"id": …}`.
-Errors are `invalid_arguments`, `unreachable`, `rate_limited` and `rejected`; the first two
-retryable ones carry `requestId` — retry once with `--request-id <that id>` so it is stored
+Errors are `invalid_arguments`, `unreachable`, `rate_limited` and `rejected`; the two
+retryable ones, `unreachable` and `rate_limited`, carry `requestId` — retry once with `--request-id <that id>` so it is stored
 only once.
 
 ## `atat help`, `version` and Skill installation

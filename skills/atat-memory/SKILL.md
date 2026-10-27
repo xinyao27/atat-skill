@@ -87,7 +87,7 @@ without an extension); `invalidRevision` means `--base` is not a revision of thi
   lists the sources it could not read, `processedItems` is the committed cursor (`totalItems`
   is the whole list), and `notProcessed` lists the sources still ahead of the cursor when a run
   stops — so a partial run never looks like a complete one. Every batch asks the user's
-  configured agent, so after the 7-day Pro preview `import` and `task retry` need a plan: without
+  configured agent, so after the 7-day AtAt One preview `import` and `task retry` need a plan: without
   one they fail with `needsPlan` before any task is created; tell the user its `message` (it
   names AtAt Settings → Account) and do not retry. The read/write core commands stay free. Exit status is 0 when the run
   finished, 130 when it was stopped with `task cancel`, and 1 for any other failure. A batch
@@ -141,7 +141,9 @@ Do not store transient task state, one-off progress, conversation transcripts, c
 re-discoverable facts, credentials, secrets, or sensitive personal information. Keep
 project-specific lessons scoped to that project; do not generalize them into global user
 habits without evidence. Prefer correcting or refining an existing entry over creating a
-duplicate or contradiction.
+duplicate or contradiction. Facts about who the user is and how they write (their name,
+languages, the tone they use with colleagues, clients and friends, sign-offs and phrases)
+belong in `profile.md`; create it, linked from `MEMORY.md`, if it does not exist yet.
 
 Preserve truthful provenance in the memory content: record what actually taught the lesson,
 and use a date only when known. Never invent source, date, author, or project attribution.

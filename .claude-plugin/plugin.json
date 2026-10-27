@@ -1,14 +1,14 @@
 {
   "name": "atat",
   "displayName": "AtAt",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "AtAt skills for using the local macOS app, its Memory Repo, and developing AtAt extensions.",
   "author": {
     "name": "xinyao27",
     "email": "hi@atatapp.com",
     "url": "https://github.com/xinyao27"
   },
-  "homepage": "https://atatapp.com/manual",
+  "homepage": "https://atatapp.com",
   "repository": "https://github.com/xinyao27/atat-skill",
   "license": "MIT",
   "keywords": [

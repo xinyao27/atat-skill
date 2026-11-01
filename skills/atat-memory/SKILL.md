@@ -75,11 +75,12 @@ without an extension); `invalidRevision` means `--base` is not a revision of thi
   AtAt-managed learning does not write it back (see "Forgetting limits"). `--reason` is a few
   words naming what was forgotten. If recording the exclusion fails, the command returns an
   error that includes the committed revision and tells you to retry `forget` with that revision.
-- `import <path>…` is batch learning from local files or directories you name: it reads only
+- `import <path>…` is batch learning from local files or directories you name: it reads
   those paths, extracts durable lessons, and commits them through the same revision-checked
   core `update`/`replace` use. Without `--json`/`--ndjson` it prints prose; `--ndjson` streams
-  one JSON event per line; `--json` prints one final result. It reads local paths only — a
-  remote URL is not fetched here; ask AtAt Chat so the host can authorize the request. A run
+  one JSON event per line; `--json` prints one final result. The public web pages those files
+  link are read too, each as a source of its own cited by its address, so a file of saved links
+  is remembered for what the pages say; `--no-links` skips them. Name files, not URLs. A run
   walks the named sources as consecutive batches until the list is done, committing each batch;
   a single batch is capped at `evidenceBatchLimit` evidence items, which limits how much one
   proposal reads, not how many sources one run covers. The result reports how many sources it

@@ -1,6 +1,6 @@
 ---
 name: atat
-description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; film a demo video of an app or website by writing a beat plan, or record a launch-ready video of a feature while you operate the app yourself with computer use. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "film a 20-second demo of this feature".
+description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; draw a picture with whoever draws in AtAt; film a demo video of an app or website by writing a beat plan, or record a launch-ready video of a feature while you operate the app yourself with computer use. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "draw an icon for this app", "film a 20-second demo of this feature".
 ---
 
 # AtAt (`atat`)
@@ -10,7 +10,7 @@ description: Use the user's Mac through AtAt's atat command — screenshot the s
 - `status`, `capture`, `context`, `record` and `dictation` are performed by the running AtAt over a local
   socket, with the user's own permissions, save location, Quick Access shelf and paid-feature
   gates. AtAt is started in the background when it is not running.
-- `feedback` and `icloud` run inside this process and need no running app.
+- `image`, `feedback` and `icloud` run inside this process and need no running app.
 
 `atat help` lists commands; `atat <command> --help` prints that command's options. Prefer the
 built-in help over guessing a flag.
@@ -37,6 +37,7 @@ Do not repeat installation when the app is already present. Do not access or cla
 | you to use something they copied | `atat context clipboard [--last <n>]` |
 | you to use something they saved in Favorites | `atat context favorites --search "<words>"`, then `--id <id>` |
 | you to work on files they selected in Finder | `atat context finder` |
+| a picture: an illustration, an icon, a mockup | `atat image "<what to draw>" [--size landscape] [--out <path>]` — see "`atat image`" |
 | a single-window demo video of an app or website | `atat record prepare` → write a plan → `atat record compose plan.json` |
 | a video of a feature while you operate the app yourself (computer use) | `atat record start --app <App>` → operate → `atat record stop --id <id> --polish` — see "Film a feature you drive" |
 | a polished screenshot of a feature, AtAt panels included | `atat capture window --app <App> --include-atat` |
@@ -57,6 +58,7 @@ What each command needs, so you can check only what your task needs:
 | `context finder` | AtAt's Automation permission for Finder |
 | `icloud sync` | **Sync with iCloud** turned on in AtAt Settings → General; it never touches the app |
 | `icloud status` | nothing — it reads this Mac only |
+| `image` | a plan after the AtAt One preview, and something set up to draw (see "`atat image`") |
 | `feedback`, `help`, `version` | nothing — they never touch the app |
 
 `atat status` answers even when AtAt is closed or the switch is off, so it is how you find out
@@ -93,7 +95,7 @@ Do not use AtAt's hidden diagnostic commands; this skill covers only the public 
 
 ## Reading output
 
-`status`, `capture`, `context`, `record` and `dictation` print one JSON object on stdout and exit 0. On
+`status`, `capture`, `context`, `record`, `dictation` and `image` print one JSON object on stdout and exit 0. On
 failure they print `{"error":{"code","message","detail"?}}` on stderr and exit nonzero:
 
 | Exit | Codes | Meaning |
@@ -181,6 +183,29 @@ contains it, case-insensitively; window capture takes that app's frontmost norma
 `capture scroll` scrolls the window itself and stitches the result, so **it moves the real
 pointer into the window**. Only run it when the user is not using that app, and only when a
 single screen cannot hold the content.
+
+## `atat image`
+
+```sh
+atat image "a paper boat on a calm lake at sunrise"
+atat image "flat app icon, a blue @@ on white" --size square --out assets/icon.png
+```
+
+It draws with whoever draws in AtAt, so you never pick a service: the agent or image service the
+user picked on the Draw chip in AtAt Settings → Agent → Providers (Codex, Grok, Antigravity,
+OpenAI, OpenRouter, xAI, Google, fal, Recraft, Seedream), else their OpenAI or OpenRouter key.
+`--size` takes `auto` (default), `square`, `landscape` or `portrait`. A picture takes up to a few
+minutes; run it once per picture you need.
+
+```json
+{"drawer": "Codex", "path": "/var/folders/…/T/GeneratedImages/3f2a….png"}
+```
+
+Without `--out` the file stays in a temporary folder for a day; `--out` copies it to that file,
+or into that folder when it is one, and never replaces an existing file. `needs_setup` means
+nothing is set up to draw: tell the user its `message`, which names where to turn it on.
+`needs_plan` means the user's plan doesn't cover it. Write the prompt in full: subject, style,
+composition, colours, and any text the picture must show.
 
 ## `atat context`
 

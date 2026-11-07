@@ -1,7 +1,7 @@
 {
   "name": "atat",
   "displayName": "AtAt",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "AtAt skills for using the local macOS app, its Memory Repo, and developing AtAt extensions.",
   "author": {
     "name": "xinyao27",

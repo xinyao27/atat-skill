@@ -1,6 +1,6 @@
 ---
 name: atat
-description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; draw a picture with whoever draws in AtAt; film a demo video of an app or website by writing a beat plan, or record a launch-ready video of a feature while you operate the app yourself with computer use. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "draw an icon for this app", "film a 20-second demo of this feature".
+description: Use the user's Mac through AtAt's atat command — screenshot the screen, a window, an area or a whole scrolling page; read clipboard history, the user's saved Favorites and the Finder selection; draw a picture, generate a video clip, compose music or synthesize speech with the providers set up in AtAt; film a demo video of an app or website by writing a beat plan, or record a launch-ready video of a feature while you operate the app yourself with computer use. Examples — "check how the settings page looks now", "look at the error in my browser", "use what I just copied", "find the quote I saved about pricing", "work on the files I selected", "draw an icon for this app", "generate an 8-second hero clip", "compose a lo-fi backing track", "narrate this voice-over", "film a 20-second demo of this feature".
 ---
 
 # AtAt (`atat`)
@@ -10,7 +10,7 @@ description: Use the user's Mac through AtAt's atat command — screenshot the s
 - `status`, `capture`, `context`, `record` and `dictation` are performed by the running AtAt over a local
   socket, with the user's own permissions, save location, Quick Access shelf and paid-feature
   gates. AtAt is started in the background when it is not running.
-- `image`, `feedback` and `icloud` run inside this process and need no running app.
+- `image`, `video`, `music`, `speak`, `feedback` and `icloud` run inside this process and need no running app.
 
 `atat help` lists commands; `atat <command> --help` prints that command's options. Prefer the
 built-in help over guessing a flag.
@@ -37,7 +37,10 @@ Do not repeat installation when the app is already present. Do not access or cla
 | you to use something they copied | `atat context clipboard [--last <n>]` |
 | you to use something they saved in Favorites | `atat context favorites --search "<words>"`, then `--id <id>` |
 | you to work on files they selected in Finder | `atat context finder` |
-| a picture: an illustration, an icon, a mockup | `atat image "<what to draw>" [--size landscape] [--out <path>]` — see "`atat image`" |
+| a picture: an illustration, an icon, a mockup, or an edit from reference images | `atat image "<what to draw>" [--image <path>...] [--size landscape] [--out <path>]` — see "`atat image`" |
+| an AI video clip (from text or reference frames) | `atat video "<scene>" [--image <path>...] [--aspect 16:9] [--duration 8] [--out <path>]` — see "`atat video`" |
+| an original song or instrumental backing track | `atat music "<style and mood>" [--lyrics "…"] [--instrumental] [--clip] [--out <path>]` — see "`atat music`" |
+| spoken voice-over or two-speaker dialogue | `atat speak "<text>" [--voice <name>] [--instructions "<style>"] [--out <path>]` — see "`atat speak`" |
 | a single-window demo video of an app or website | `atat record prepare` → write a plan → `atat record compose plan.json` |
 | a video of a feature while you operate the app yourself (computer use) | `atat record start --app <App>` → operate → `atat record stop --id <id> --polish` — see "Film a feature you drive" |
 | a polished screenshot of a feature, AtAt panels included | `atat capture window --app <App> --include-atat` |
@@ -58,7 +61,7 @@ What each command needs, so you can check only what your task needs:
 | `context finder` | AtAt's Automation permission for Finder |
 | `icloud sync` | **Sync with iCloud** turned on in AtAt Settings → General; it never touches the app |
 | `icloud status` | nothing — it reads this Mac only |
-| `image` | a plan after the AtAt One preview, and something set up to draw (see "`atat image`") |
+| `image`, `video`, `music`, `speak` | a plan after the AtAt One preview, and a matching provider set up in Settings → Agent → Providers |
 | `feedback`, `help`, `version` | nothing — they never touch the app |
 
 `atat status` answers even when AtAt is closed or the switch is off, so it is how you find out
@@ -95,7 +98,7 @@ Do not use AtAt's hidden diagnostic commands; this skill covers only the public 
 
 ## Reading output
 
-`status`, `capture`, `context`, `record`, `dictation` and `image` print one JSON object on stdout and exit 0. On
+`status`, `capture`, `context`, `record`, `dictation`, `image`, `video`, `music` and `speak` print one JSON object on stdout and exit 0. On
 failure they print `{"error":{"code","message","detail"?}}` on stderr and exit nonzero:
 
 | Exit | Codes | Meaning |
@@ -189,13 +192,15 @@ single screen cannot hold the content.
 ```sh
 atat image "a paper boat on a calm lake at sunrise"
 atat image "flat app icon, a blue @@ on white" --size square --out assets/icon.png
+atat image "restyle this sketch in warm studio lighting" --image draft.png --size landscape
 ```
 
 It draws with whoever draws in AtAt, so you never pick a service: the agent or image service the
 user picked on the Draw chip in AtAt Settings → Agent → Providers (Codex, Grok, Antigravity,
-OpenAI, OpenRouter, xAI, Google, fal, Recraft, Seedream), else their OpenAI or OpenRouter key.
-`--size` takes `auto` (default), `square`, `landscape` or `portrait`. A picture takes up to a few
-minutes; run it once per picture you need.
+Google, OpenAI, OpenRouter, Grok API, fal, Recraft, BytePlus), else their OpenAI, Google or
+OpenRouter key. Pass up to 6 local reference images with repeatable `--image <path>`. `--size`
+takes `auto` (default), `square`, `landscape` or `portrait`. A picture takes up to a few minutes;
+run it once per picture you need.
 
 ```json
 {"drawer": "Codex", "path": "/var/folders/…/T/GeneratedImages/3f2a….png"}
@@ -206,6 +211,57 @@ or into that folder when it is one, and never replaces an existing file. `needs_
 nothing is set up to draw: tell the user its `message`, which names where to turn it on.
 `needs_plan` means the user's plan doesn't cover it. Write the prompt in full: subject, style,
 composition, colours, and any text the picture must show.
+
+## `atat video`
+
+```sh
+atat video "raindrops rippling across neon Tokyo asphalt at dusk, slow dolly in"
+atat video "camera orbits this ceramic mug on a wooden desk" --image mug.png --aspect 16:9 --duration 8 --out hero.mp4
+```
+
+Generates an MP4 video clip with the provider picked on the Video chip in AtAt Settings → Agent →
+Providers (Google, Grok API, BytePlus, fal, Runway), else any configured Video provider key on
+this Mac. Pass up to 6 reference images with `--image <path>` (start frame or multi-image input).
+`--aspect` takes `16:9` (default), `9:16` or `1:1`; `--duration` takes `1`–`30` seconds (default
+`8`, mapped to the closest duration the provider supports); `--no-audio` mutes generated sound
+where supported. Video generation commonly takes 30–180 seconds; run it once per clip.
+
+```json
+{"path": "/var/folders/…/T/GeneratedMedia/8c1e….mp4", "provider": "Google Omni Video"}
+```
+
+## `atat music`
+
+```sh
+atat music "warm lo-fi jazz piano with upright bass and vinyl crackle, 88 bpm" --instrumental
+atat music "upbeat synth-pop chorus" --lyrics "City lights wake up tonight…" --clip --out chorus.mp3
+```
+
+Composes a song or instrumental track with the provider picked on the Music chip in AtAt Settings →
+Agent → Providers (Google, ElevenLabs, fal), else any configured Music provider key on this Mac.
+Optional flags: `--lyrics <text>` or `--lyrics-file <path>`, `--instrumental`, `--clip` (short ~30 s
+preview on Google Lyria), repeatable `--image <path>` (visual inspiration on Google Lyria), and
+`--out <path>`.
+
+```json
+{"lyrics": "…", "path": "/var/folders/…/T/GeneratedMedia/4a9b….mp3", "provider": "Google Lyria"}
+```
+
+## `atat speak`
+
+```sh
+atat speak "Welcome back to AtAt." --instructions "warm, unhurried documentary narrator" --out intro.wav
+atat speak "Host: Ready to ship?\nGuest: Let's roll." --speakers "Host=Kore,Guest=Puck"
+```
+
+Synthesizes spoken narration or two-speaker dialogue with the provider picked on the Speak chip in
+AtAt Settings → Agent → Providers (Google, ElevenLabs, Fish Audio), else any configured Speak
+provider key on this Mac. Optional flags: `--voice <name|id>`, `--instructions <style>`,
+`--speakers "<Speaker=Voice,...>"` (multi-speaker dialogue on Google Gemini TTS), and `--out <path>`.
+
+```json
+{"path": "/var/folders/…/T/GeneratedMedia/9d2c….wav", "provider": "Google Gemini TTS"}
+```
 
 ## `atat context`
 
@@ -607,10 +663,10 @@ update from the app bundle.
 | --- | --- |
 | `command not found` | Treat this as a missing launcher, not proof the app is absent. Follow "If the `atat` command is unavailable" to confirm the execution environment and whether AtAt is installed. |
 | `disabled` | Stop. Ask the user to turn on "Let agents use @@" in AtAt Settings → Agent → atat CLI. |
-| `needs_setup` | Stop. Name the permission in the message; the user grants it in System Settings, and AtAt may show its own prompt. |
+| `needs_setup` | Stop. Name the missing permission or provider in the message; the user grants it in System Settings or adds the provider in AtAt Settings → Agent → Providers. |
 | `not_found` | The app, window or Finder window is not open, or has no capturable window. Open it, pick another target, or ask. |
 | `invalid_arguments` | Fix the command or plan. For filming, a stale `snapshotId` means: `prepare` again. |
-| `needs_plan` | Reserved: no public command returns it today, because the core commands are free and exports are never blocked. If you see it, tell the user the `message`; do not retry. |
+| `needs_plan` | After the AtAt One preview, `image`, `video`, `music`, `speak` and `memory import` require AtAt One. Tell the user the `message`; do not retry. |
 | `unavailable` | The feature is turned off (Clipboard History, Favorites search, an account gate). Tell the user; do not retry. |
 | `needs_approval` | The user declined a press that acts for them (send, delete, pay…). Drop those beats, or ask them again with the reason. |
 | `handoff_cancelled` | The user stopped during a handoff. Stop, and report what was saved. |
